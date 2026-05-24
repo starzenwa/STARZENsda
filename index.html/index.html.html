@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Be My Valentine? 🌹</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;600;800&display=swap');
+        
+        body { 
+            font-family: 'Kanit', sans-serif; 
+            background-color: #ffebee; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            margin: 0; 
+            overflow: hidden; 
+            transition: background-color 0.5s ease;
+            touch-action: manipulation;
+        }
+        
+        #heartContainer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
+        
+        .container { 
+            background: white; padding: 40px; border-radius: 40px; 
+            box-shadow: 0 25px 50px rgba(0,0,0,0.1); text-align: center; 
+            min-width: 320px; width: auto; max-width: 95vw;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 10; transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        h1 { color: #d81b60; margin-bottom: 20px; font-size: 1.8rem; font-weight: 800; text-align: center; width: 100%; transition: all 0.2s; }
+        
+        .btn-group { display: flex; justify-content: center; align-items: center; gap: 15px; width: 100%; margin-top: 20px; }
+
+        button { 
+            padding: 15px 30px; font-size: 1.2rem; border: none; border-radius: 20px; 
+            cursor: pointer; font-weight: 600; transition: all 0.2s ease; 
+            font-family: 'Kanit', sans-serif; -webkit-tap-highlight-color: transparent;
+        }
+        
+        #yesBtn { background: linear-gradient(45deg, #ff4081, #f50057); color: white; z-index: 100; white-space: nowrap; }
+        #noBtn { background-color: #e0e0e0; color: #757575; position: relative; z-index: 101; white-space: nowrap; transition: all 0.2s ease, left 0s, top 0s; }
+        
+        /* --- UI Player ขนาดจิ๋ว (Mini Version) --- */
+        .ui-player {
+            position: fixed; bottom: 15px; left: 15px;
+            background: #121212; border-radius: 20px;
+            padding: 8px 12px; display: flex; flex-direction: column; 
+            gap: 3px; box-shadow: 0 8px 25px rgba(0,0,0,0.5); 
+            z-index: 2000; min-width: 200px; overflow: hidden;
+        }
+
+        .ui-title { 
+            font-size: 9px; color: #ff4081; font-weight: 800; 
+            white-space: nowrap; margin-bottom: 1px; letter-spacing: 0.3px;
+        }
+
+        .ui-progress-box { width: 100%; }
+        .progress-wrap { width: 100%; height: 3px; background: #333; border-radius: 10px; cursor: pointer; overflow: hidden; }
+        #progress { height: 100%; width: 0%; background: #ff4081; transition: width 0.1s linear; }
+        .time { display: flex; justify-content: space-between; font-size: 8px; color: #777; margin-top: 1px; }
+
+        .ui-bottom-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 2px; }
+        .ui-controls { display: flex; align-items: center; gap: 8px; }
+        .ui-btn { background: none; border: none; color: #fff; cursor: pointer; font-size: 11px; transition: 0.2s; padding: 3px; }
+        .ui-btn:active { transform: scale(0.9); opacity: 0.7; }
+
+        .ui-play {
+            width: 28px; height: 28px; border-radius: 50%; background: #fff; color: #000;
+            display: flex; align-items: center; justify-content: center; font-size: 10px; flex-shrink: 0;
+        }
+
+        /* รูปอัลบั้ม - หมุนช้าๆ (10 วินาที) */
+        .ui-img {
+            width: 35px; height: 35px; border-radius: 50% !important; 
+            object-fit: cover; border: 1.5px solid #222; flex-shrink: 0;
+            animation: rotateRecord 10s linear infinite;
+        }
+
+        @keyframes rotateRecord { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        #celebrate-page { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #ff80ab, #f50057); flex-direction: column; justify-content: center; align-items: center; z-index: 1000; text-align: center; color: white; }
+        .main-img { width: 250px; max-width: 80%; animation: bounce 2s infinite; margin: 20px 0; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+        .heart { position: absolute; pointer-events: none; animation: floatDown var(--d) linear infinite; opacity: 0; z-index: 1001; }
+        @keyframes floatDown { 0% { transform: translateY(-10vh) scale(0) rotate(0deg); opacity: 0; } 10% { opacity: 1; } 100% { transform: translateY(110vh) scale(1.5) rotate(360deg); opacity: 0; } }
+        .heart-burst { position: absolute; pointer-events: none; z-index: 1002; animation: burst 1s ease-out forwards; }
+        @keyframes burst { 0% { transform: translate(0, 0) scale(1); opacity: 1; } 100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; } }
+        .log-box { margin-top: 20px; padding: 10px 25px; background: rgba(255, 255, 255, 0.25); border-radius: 20px; font-size: 1.2rem; font-weight: 600; backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.3); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    </style>
+</head> 
+<body onclick="playMusic()">
+
+    <div id="heartContainer"></div>
+
+    <div id="main-page">
+        <div class="container">
+            <h1 id="main-text">เย็ด or ไม่เย็ด 🌹</h1>
+            <div class="btn-group">
+                <button id="yesBtn" onclick="celebrate()">เย็ดดิ!</button>
+                <button id="noBtn" onclick="runAway()">ไม่เย็ด</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="ui-player">
+        <div class="ui-title">Music: ฟีโรโมน - BlackHeart</div>
+        
+        <div class="ui-progress-box">
+            <div class="progress-wrap" onclick="seek(event)">
+                <div id="progress"></div>
+            </div>
+            <div class="time">
+                <span id="current">0:00</span>
+                <span id="duration">0:00</span>
+            </div>
+        </div>
+
+        <div class="ui-bottom-row">
+            <div class="ui-controls">
+                <button class="ui-btn"><i class="fa-solid fa-bars"></i></button>
+                <button class="ui-btn"><i class="fa-solid fa-backward-step"></i></button>
+                <button class="ui-btn ui-play" id="playStatus" onclick="toggleUIPlay(event)">
+                    <i class="fa-solid fa-play" id="playIcon"></i>
+                </button>
+                <button class="ui-btn"><i class="fa-solid fa-forward-step"></i></button>
+                <button class="ui-btn"><i class="fa-solid fa-heart"></i></button>
+            </div>
+            <img src="https://i.ibb.co/qLFyTFDv/2026-04-28-182337.png" class="ui-img">
+        </div>
+    </div>
+
+    <div id="celebrate-page">
+        <div style="font-size: 2.8rem; font-weight: 800; text-shadow: 2px 2px 10px rgba(0,0,0,0.2);">จะเอาให้โบ๋เลย</div>
+        <img src="https://i.ibb.co/k2596HyT/458424719-17863437828217634-867596617436483969-n-removebg-preview-1.png" class="main-img">
+        <div style="font-size: 1.5rem; font-weight: 600;">เราจะดูแลเธอเอง!</div>
+        <div id="log-display" class="log-box"></div>
+    </div>
+
+    <audio id="bgMusic" loop><source src="niraat.mp3" type="audio/mpeg"></audio>
+
+    <script>
+        const music = document.getElementById('bgMusic');
+        const playIcon = document.getElementById('playIcon');
+        const yesBtn = document.getElementById('yesBtn');
+        const noBtn = document.getElementById('noBtn');
+        const mainText = document.getElementById('main-text');
+        const discordUrl = 'https://discord.com/api/webhooks/1498323070547525702/K8OEIutL6DrOplx-MrLH6oCPryijgUburJTcLi9njh21FzWqmSczweDeX1W8r5hCEIsb';
+        
+        const noSound = new Audio('no.mp3'); 
+        const cheerSound = new Audio('yay.mp3');
+
+        music.volume = 0.3; 
+        noSound.volume = 0.3;
+        cheerSound.volume = 0.3;
+
+        let moveCount = 0; 
+        let currentPadding = 15;
+        let currentFontSize = 1.2;
+        let mainTextSize = 1.8;
+        let noFontSize = 1.2;
+
+        const messages = ["เย็ด or ไม่เย็ด 🌹"];
+        const noMessages = ["ไม่เย็ด",];
+        const yesMessages = ["เย็ด!", "เย็ดเถอะ"];
+
+        let heartInterval = setInterval(createFallingHeart, 400);
+
+        function playMusic() { 
+            music.play().catch(() => {}); 
+            playIcon.className = 'fa-solid fa-pause';
+        }
+
+        function toggleUIPlay(e) {
+            e.stopPropagation();
+            if (music.paused) {
+                music.play();
+                playIcon.className = 'fa-solid fa-pause';
+            } else {
+                music.pause();
+                playIcon.className = 'fa-solid fa-play';
+            }
+        }
+
+        function createHeartBurst(x, y, count = 12) {
+            for (let i = 0; i < count; i++) {
+                const h = document.createElement('div');
+                h.innerHTML = ['❤️','💖','💗','💕','💞'][Math.floor(Math.random()*5)];
+                h.className = 'heart-burst';
+                h.style.left = x + 'px';
+                h.style.top = y + 'px';
+                h.style.fontSize = (Math.random() * 30 + 15) + 'px';
+                const tx = (Math.random() - 0.5) * 500;
+                const ty = (Math.random() - 0.5) * 500;
+                h.style.setProperty('--tx', `${tx}px`);
+                h.style.setProperty('--ty', `${ty}px`);
+                document.body.appendChild(h);
+                setTimeout(() => h.remove(), 1000);
+            }
+        }
+
+        function runAway() {
+            playMusic();
+            noSound.currentTime = 0;
+            noSound.play().catch(() => {});
+            moveCount++; 
+            const rect = noBtn.getBoundingClientRect();
+            createHeartBurst(rect.left + rect.width/2, rect.top + rect.height/2, 10);
+            const colors = ['#ffebee', '#ffcdd2', '#ef9a9a', '#e57373', '#ef5350', '#f44336', '#d32f2f'];
+            document.body.style.backgroundColor = colors[Math.min(moveCount, colors.length - 1)];
+            const padding = 50;
+            let randomX = Math.random() * (window.innerWidth - noBtn.offsetWidth - padding);
+            let randomY = Math.random() * (window.innerHeight - noBtn.offsetHeight - padding);
+            noBtn.style.position = 'fixed';
+            noBtn.style.left = Math.max(0, randomX) + 'px';
+            noBtn.style.top = Math.max(0, randomY) + 'px';
+            currentPadding += 10; 
+            currentFontSize += 0.3;
+            mainTextSize += 0.1;
+            yesBtn.style.padding = `${currentPadding}px ${currentPadding * 2}px`;
+            yesBtn.style.fontSize = `${currentFontSize}rem`;
+            mainText.style.fontSize = `${mainTextSize}rem`;
+            if (noFontSize > 0.6) {
+                noFontSize -= 0.05;
+                noBtn.style.fontSize = `${noFontSize}rem`;
+            }
+            mainText.innerText = messages[moveCount % messages.length];
+            noBtn.innerText = noMessages[moveCount % noMessages.length];
+            yesBtn.innerText = yesMessages[moveCount % yesMessages.length];
+        }
+
+        function createFallingHeart() {
+            const heart = document.createElement('div');
+            heart.innerHTML = ['❤️','💖','💗','💕','🌹'][Math.floor(Math.random()*5)];
+            heart.className = 'heart';
+            heart.style.left = Math.random() * 100 + 'vw';
+            const size = (Math.random() * 20 + 10) + 'px';
+            heart.style.fontSize = size;
+            const duration = (Math.random() * 3 + 3);
+            heart.style.setProperty('--d', duration + 's');
+            document.getElementById('heartContainer').appendChild(heart);
+            setTimeout(() => heart.remove(), duration * 1000);
+        }
+
+        function celebrate() {
+            music.pause();
+            cheerSound.play().catch(() => {});
+            clearInterval(heartInterval);
+            heartInterval = setInterval(createFallingHeart, 100);
+            document.body.style.backgroundColor = '#f50057';
+            document.getElementById('main-page').style.display = 'none';
+            document.getElementById('celebrate-page').style.display = 'flex';
+            document.getElementById('log-display').innerText = `สถิติความใจร้าย: หนีเค้าไปทั้งหมด ${moveCount} ครั้ง!`;
+            createHeartBurst(window.innerWidth/2, window.innerHeight/2, 50);
+            fetch(discordUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content: `💖 **สำเร็จ!** คนรักกดตกลงแล้ว \n📊 **สถิติ:** หนีไปทั้งหมด **${moveCount}** ครั้ง` })
+            });
+        }
+
+        const progress = document.getElementById('progress');
+        const current = document.getElementById('current');
+        const duration = document.getElementById('duration');
+
+        music.addEventListener('timeupdate', () => {
+            if (music.duration) {
+                const percent = (music.currentTime / music.duration) * 100;
+                progress.style.width = percent + '%';
+                current.innerText = formatTime(music.currentTime);
+                duration.innerText = formatTime(music.duration);
+            }
+        });
+
+        function formatTime(time) {
+            const min = Math.floor(time / 60);
+            const sec = Math.floor(time % 60).toString().padStart(2, '0');
+            return `${min}:${sec}`;
+        }
+
+        music.addEventListener('loadedmetadata', () => {
+            duration.innerText = formatTime(music.duration);
+        });
+
+        function seek(e) {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const clientX = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
+            let x = clientX - rect.left;
+            x = Math.max(0, Math.min(x, rect.width));
+            const percent = x / rect.width;
+            music.currentTime = percent * music.duration;
+        }
+
+        document.querySelector('.progress-wrap').addEventListener('touchstart', (e) => {
+            e.stopPropagation();
+            seek(e);
+        });
+        document.querySelector('.progress-wrap').addEventListener('click', seek);
+
+    </script>
+</body>
+</html>
