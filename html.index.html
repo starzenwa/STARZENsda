@@ -1,0 +1,520 @@
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>บ้านๆ POS System devbanban.com </title>
+<!-- 
+     โปรแรง! ลดสูงสุด 80%
+ Source Code กว่า 40 โปรแกรม พร้อมใช้ทันที
+✔️ ซื้อแล้วปรึกษาได้ฟรี
+ เลือกดูสินค้า: คลิกเลย https://devbanban.com/?p=4425
+ Inbox | Line: https://lin.ee/NIX8sbh
+ -->
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+ 
+    <style>
+        /* -------------------------
+         * Global & Layout
+         * ------------------------- */
+        body {
+            background-color: #f4f7f6; /* สีพื้นหลังเทาอ่อนๆ */
+            font-family: 'Inter', sans-serif; /* ใช้ Font ที่ดู Modern (ถ้ามี) */
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+ 
+        /* * Layout หลัก:
+         * ใช้ Flexbox เพื่อให้ได้ 2 คอลัมน์เต็มความสูง
+         * และบังคับให้แต่ละคอลัมน์ scroll ได้อย่างอิสระ
+        */
+        .main-wrapper {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .main-content {
+            flex-grow: 1; /* ให้ content กินพื้นที่ที่เหลือ */
+            overflow: hidden; /* ซ่อน scrollbar ของ wrapper */
+        }
+        
+        .main-content .row {
+            height: 100%;
+        }
+ 
+        /* คอลัมน์สินค้าและคอลัมน์ตะกร้า */
+        .product-column, .cart-column {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto; /* ให้ scrollbar เกิดในคอลัมน์นี้ */
+            padding-bottom: 24px;
+        }
+ 
+        /* -------------------------
+         * Navbar
+         * ------------------------- */
+        .navbar {
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            background-color: #ffffff;
+        }
+ 
+        .navbar-brand {
+            font-weight: 700;
+            color: #0d6efd !important;
+        }
+ 
+        .user-profile {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 2px solid #eee;
+        }
+        
+        /* -------------------------
+         * Product Column (ฝั่งซ้าย)
+         * ------------------------- */
+         .search-bar {
+            border-radius: 12px;
+            border: 1px solid #dee2e6;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+         }
+         .search-bar .form-control {
+            border: none;
+            box-shadow: none !important;
+         }
+         .search-bar .input-group-text {
+            border: none;
+            background: transparent;
+            color: #6c757d;
+         }
+ 
+        /* ปุ่ม Category */
+        .category-nav .nav-link {
+            border-radius: 10px;
+            margin-right: 8px;
+            font-weight: 500;
+            color: #495057;
+            transition: all 0.2s ease;
+        }
+        .category-nav .nav-link.active {
+            background-color: #0d6efd;
+            color: #ffffff;
+            box-shadow: 0 4px 10px rgba(13, 110, 253, 0.3);
+        }
+        .category-nav .nav-link:hover:not(.active) {
+            background-color: #e9ecef;
+        }
+ 
+        /* การ์ดสินค้า */
+        .product-card {
+            background-color: #ffffff;
+            border: 1px solid #e9ecef;
+            border-radius: 16px; /* ขอบมนมากๆ */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            overflow: hidden; /* กันรูปทะลุขอบมน */
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        }
+        .product-card-img {
+            height: 150px;
+            object-fit: cover;
+        }
+        .product-card .card-body {
+            padding: 1rem;
+        }
+        .product-card .card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #343a40;
+            margin-bottom: 0.25rem;
+        }
+        .product-card .card-text {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #0d6efd;
+        }
+ 
+        /* -------------------------
+         * Cart Column (ฝั่งขวา)
+         * ------------------------- */
+        .cart-sidebar {
+            background-color: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+            padding: 24px;
+            /* ทำให้ส่วนรายการสินค้า scroll ได้ */
+            display: flex;
+            flex-direction: column;
+            height: 100%; /* สำคัญมาก */
+        }
+        
+        .cart-items-list {
+            flex-grow: 1; /* ให้ส่วนนี้ยืดจนเต็มพื้นที่ */
+            overflow-y: auto; /* มี scrollbar เฉพาะส่วนนี้ */
+            margin-bottom: 1rem;
+            padding-right: 10px; /* เว้นที่ให้ scrollbar */
+        }
+ 
+        /* Custom scrollbar */
+        .cart-items-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        .cart-items-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        .cart-items-list::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 10px;
+        }
+        .cart-items-list::-webkit-scrollbar-thumb:hover {
+            background: #aaa;
+        }
+ 
+ 
+        .cart-item {
+            padding: 1rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+        .cart-item-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        .cart-item-price {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        .quantity-control {
+            width: 110px;
+        }
+        .quantity-control .btn {
+            border-radius: 8px !important;
+            background-color: #f1f3f5;
+            border: none;
+            color: #495057;
+            font-weight: bold;
+        }
+        .quantity-control .form-control {
+            border: none;
+            box-shadow: none;
+            text-align: center;
+            font-weight: 600;
+            padding: 0.375rem 0.25rem;
+        }
+        .remove-btn {
+            font-size: 1.2rem;
+            color: #dc3545;
+            transition: color 0.2s;
+        }
+        .remove-btn:hover {
+            color: #a71d2a;
+        }
+ 
+        /* ส่วนสรุปยอด */
+        .cart-summary {
+            border-top: 2px dashed #e9ecef;
+            padding-top: 1.5rem;
+        }
+        .cart-summary .summary-row {
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        .cart-summary .summary-row.total {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #212529;
+        }
+        .cart-summary .summary-row.total .price {
+            color: #0d6efd;
+        }
+        
+        /* ปุ่มจ่ายเงิน */
+        .btn-pay {
+            font-size: 1.1rem;
+            font-weight: 600;
+            padding: 0.8rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(13, 110, 253, 0.3);
+        }
+ 
+    </style>
+</head>
+<body>
+ 
+    <div class="main-wrapper">
+        
+        <nav class="navbar navbar-expand-lg sticky-top">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="https://devbanban.com/?p=4425" target="_blank">
+                    <i class="bi bi-cart4"></i> บ้านๆ POS
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarText">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="https://devbanban.com/?p=4425" target="_blank">หน้าขาย</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="https://devbanban.com/?p=4425" target="_blank">รายงาน</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="https://www.instagram.com/usernamecartoon_/" target="_blank">ตั้งค่า</a>
+                        </li>
+                    </ul>
+                    <span class="navbar-text d-flex align-items-center">
+                        <span class="me-3">สวัสดี, devbanban</span>
+                        <img src="https://scontent.fbkk7-3.fna.fbcdn.net/v/t39.30808-6/293805040_435132671959468_6665761187450629818_n.jpg?_nc_cat=101&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=u8c4MBNh3U0Q7kNvwFgJuUY&_nc_oc=AdkJZEIN_-MINSar6H8q8OWylTHFACjZddc_wKFOz_JksYblpoR0jrAYbmZZmORyNHQ&_nc_zt=23&_nc_ht=scontent.fbkk7-3.fna&_nc_gid=q2txHM5tN6N5by0nQPN_zQ&oh=00_AfdS-aZwVUaSDbXQSxZUV6kjqc5LnMTFn6wDj_8huHo1Bg&oe=6905595B" alt="User" class="user-profile">
+                    </span>
+                </div>
+            </div>
+        </nav>
+ 
+        <main class="main-content">
+            <div class="row g-0">
+ 
+                <div class="col-lg-7 col-xl-8 product-column p-4">
+                    
+                    <div class="mb-4">
+                        <div class="input-group input-group-lg search-bar">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="text" class="form-control" placeholder="ค้นหาสินค้า (ชื่อ, รหัส)...">
+                        </div>
+                    </div>
+ 
+                    <div class="mb-4">
+                        <ul class="nav nav-pills category-nav">
+                            <li class="nav-item">
+                                <a class="nav-link active" href="#">ทั้งหมด</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#">เครื่องดื่ม</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#">เบเกอรี่</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#">อาหารจานเดียว</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#">ของทานเล่น</a>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="row row-cols-2 row-cols-md-3 row-cols-xl-4 row-cols-xxl-5 g-3">
+                        
+                        <div class="col">
+                            <div class="card product-card h-100">
+                                <img src="https://cdn.phototourl.com/free/2026-06-13-9327a447-1b6f-4731-a835-a2af0a1e3ca5.png" class="card-img-top product-card-img" alt="Latte">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">คาเฟ่ ลาเต้ (ร้อน)</h5>
+                                    <p class="card-text">฿75.00</p>
+                                </div>
+                            </div>
+                        </div>
+ 
+                        <div class="col">
+                            <div class="card product-card h-100">
+                                <img src="https://cdn.phototourl.com/free/2026-06-13-9327a447-1b6f-4731-a835-a2af0a1e3ca5.png" class="card-img-top product-card-img" alt="Latte">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">ครัวซองต์เนยสด</h5>
+                                    <p class="card-text">฿55.00</p>
+                                </div>
+                            </div>
+                        </div>
+ 
+                        <div class="col">
+                            <div class="card product-card h-100">
+                                <img src="https://cdn.phototourl.com/free/2026-06-13-9327a447-1b6f-4731-a835-a2af0a1e3ca5.png" class="card-img-top product-card-img" alt="Latte">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">มอคค่า (เย็น)</h5>
+                                    <p class="card-text">฿85.00</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col">
+                            <div class="card product-card h-100">
+                                <img src="https://cdn.phototourl.com/free/2026-06-13-9327a447-1b6f-4731-a835-a2af0a1e3ca5.png" class="card-img-top product-card-img" alt="Latte">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">ชาเขียวมัทฉะ</h5>
+                                    <p class="card-text">฿80.00</p>
+                                </div>
+                            </div>
+                        </div>
+ 
+                        <div class="col">
+                            <div class="card product-card h-100 opacity-50" style="cursor: not-allowed;">
+                                <img src="https://cdn.phototourl.com/free/2026-06-13-9327a447-1b6f-4731-a835-a2af0a1e3ca5.png" class="card-img-top product-card-img" alt="Latte">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">บลูเบอร์รี่ชีสเค้ก</h5>
+                                    <p class="card-text text-danger"><s>฿95.00</s> (หมด)</p>
+                                </div>
+                            </div>
+                        </div>
+ 
+                        <div class="col">
+                            <div class="card product-card h-100">
+                                <img src="https://cdn.phototourl.com/free/2026-06-13-9327a447-1b6f-4731-a835-a2af0a1e3ca5.png" class="card-img-top product-card-img" alt="Latte">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">อเมริกาโน่ (เย็น)</h5>
+                                    <p class="card-text">฿65.00</p>
+                                </div>
+                            </div>
+                        </div>
+ 
+                        <div class="col">
+                            <div class="card product-card h-100">
+                                <img src="https://cdn.phototourl.com/free/2026-06-13-9327a447-1b6f-4731-a835-a2af0a1e3ca5.png" class="card-img-top product-card-img" alt="Latte">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">ครัวซองต์เนยสด</h5>
+                                    <p class="card-text">฿55.00</p>
+                                </div>
+                            </div>
+                        </div>
+ 
+                        <div class="col">
+                            <div class="card product-card h-100">
+                                <img src="https://cdn.phototourl.com/free/2026-06-13-9327a447-1b6f-4731-a835-a2af0a1e3ca5.png" class="card-img-top product-card-img" alt="Latte">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">มอคค่า (เย็น)</h5>
+                                    <p class="card-text">฿85.00</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col">
+                            <div class="card product-card h-100">
+                                <img src="https://cdn.phototourl.com/free/2026-06-13-9327a447-1b6f-4731-a835-a2af0a1e3ca5.png" class="card-img-top product-card-img" alt="Latte">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">ชาเขียวมัทฉะ</h5>
+                                    <p class="card-text">฿80.00</p>
+                                </div>
+                            </div>
+                        </div>
+ 
+                        <div class="col">
+                            <div class="card product-card h-100 opacity-50" style="cursor: not-allowed;">
+                                <img src="https://cdn.phototourl.com/free/2026-06-13-9327a447-1b6f-4731-a835-a2af0a1e3ca5.png" class="card-img-top product-card-img" alt="Latte">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">บลูเบอร์รี่ชีสเค้ก</h5>
+                                    <p class="card-text text-danger"><s>฿95.00</s> (หมด)</p>
+                                </div>
+                            </div>
+                        </div>
+ 
+ 
+                    </div> </div>
+ 
+                <div class="col-lg-5 col-xl-4 cart-column">
+                    <div class="cart-sidebar m-3">
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h4 class="mb-0 fw-bold">รายการปัจจุบัน (3)</h4>
+                            <button class="btn btn-outline-danger btn-sm">
+                                <i class="bi bi-trash3 me-1"></i> ล้างทั้งหมด
+                            </button>
+                        </div>
+                        
+                        <div class="cart-items-list">
+                            
+                            <div class="cart-item d-flex align-items-center">
+                                <div class="flex-grow-1">
+                                    <div class="cart-item-title">แฟนแอ้ม</div>
+                                    <div class="cart-item-price">@ ฿75.00</div>
+                                </div>
+                                <div class="input-group quantity-control mx-3">
+                                    <button class="btn btn-sm" type="button">-</button>
+                                    <input type="text" class="form-control" value="1" readonly>
+                                    <button class="btn btn-sm" type="button">+</button>
+                                </div>
+                                <div class="fw-bold me-3">฿75.00</div>
+                                <a href="#" class="remove-btn"><i class="bi bi-x-circle-fill"></i></a>
+                            </div>
+ 
+                            <div class="cart-item d-flex align-items-center">
+                                <div class="flex-grow-1">
+                                    <div class="cart-item-title">แฟนแอ้ม</div>
+                                    <div class="cart-item-price">@ ฿55.00</div>
+                                </div>
+                                <div class="input-group quantity-control mx-3">
+                                    <button class="btn btn-sm" type="button">-</button>
+                                    <input type="text" class="form-control" value="2" readonly>
+                                    <button class="btn btn-sm" type="button">+</button>
+                                </div>
+                                <div class="fw-bold me-3">฿110.00</div>
+                                <a href="#" class="remove-btn"><i class="bi bi-x-circle-fill"></i></a>
+                            </div>
+ 
+                            <div class="cart-item d-flex align-items-center">
+                                <div class="flex-grow-1">
+                                    <div class="cart-item-title">แฟนแอ้ม</div>
+                                    <div class="cart-item-price">@ ฿80.00</div>
+                                </div>
+                                <div class="input-group quantity-control mx-3">
+                                    <button class="btn btn-sm" type="button">-</button>
+                                    <input type="text" class="form-control" value="1" readonly>
+                                    <button class="btn btn-sm" type="button">+</button>
+                                </div>
+                                <div class="fw-bold me-3">฿80.00</div>
+                                <a href="#" class="remove-btn"><i class="bi bi-x-circle-fill"></i></a>
+                            </div>
+ 
+                        </div> <div class="cart-summary">
+                            <div class="d-flex justify-content-between mb-2 summary-row">
+                                <span>ยอดรวม (Subtotal)</span>
+                                <span>฿265.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2 summary-row">
+                                <span>ส่วนลด (Discount)</span>
+                                <span class="text-danger">-฿0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3 summary-row">
+                                <span>ภาษี (VAT 7%)</span>
+                                <span>฿18.55</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-4 summary-row total">
+                                <span>ยอดสุทธิ</span>
+                                <span class="price">฿283.55</span>
+                            </div>
+ 
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-primary btn-lg btn-pay" type="button">
+                                    <i class="bi bi-credit-card-fill me-2"></i> ชำระเงิน
+                                </button>
+                                <button class="btn btn-outline-secondary" type="button">
+                                    <i class="bi bi-pause-circle me-1"></i> พักบิล
+                                </button>
+                            </div>
+                        </div>
+ 
+                    </div>
+                </div>
+ 
+            </div> </main>
+ 
+            <footer>
+                <p class="text-center mt-5 mb-5">
+                    Code from  Gemini, Modify by devbanban.com @2025  
+                    <a href="https://www.instagram.com/usernamecartoon_/"> read more...</a>
+                </p>
+            </footer>
+ 
+    </div> <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+</body>
+</html>
